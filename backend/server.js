@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import userRoute from "./routes/user.routes.js";
 import { app, server } from "./socket/socket.js";
 import path from "path";
+import { clerkMiddleware } from "@clerk/express";
 
 const port = process.env.port || 5000;
 const __dirname = path.resolve();
@@ -15,6 +16,8 @@ dotenv.config();
 
 app.use(cookieParser());
 app.use(express.json());
+app.use(clerkMiddleware());
+
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/users", userRoute);

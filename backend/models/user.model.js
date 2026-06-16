@@ -11,15 +11,16 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    password: {
+    clerkId: {
       type: String,
       required: true,
-      minLength: 6,
+      unique: true,
     },
     gender: {
       type: String,
       required: true,
-      enum: ["male", "female"],
+      enum: ["male", "female", "other"],
+      default: "other",
     },
     profilePic: {
       type: String,

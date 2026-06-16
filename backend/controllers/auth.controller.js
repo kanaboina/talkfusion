@@ -1,79 +1,49 @@
 import User from "../models/user.model.js";
-import generateTokenAndSetCookie from "../utils/generateToken.js";
-import bcrypt from "bcryptjs";
+import { getAuth } from "@clerk/express";
 
-const login = async (req, res) => {
+const syncUser = async (req, res) => {
   try {
-    const { username, password } = req.body;
-    const user = await User.findOne({ username: username });
-    const isPasswordCorrect = await bcrypt.compare(
-      password,
-      user?.password || ""
-    );
-    if (!user || !isPasswordCorrect) {
-      return res.status(400).json({ error: "Invalid Username or Password" });
+    const { userId } = getAuth(req);
+    if (!userId) return res.status(401).json({ error: "Unauthorised" });
+
+    const { clerkId, fullName, username, profilePic } = req.body;
+
+    if (!clerkId || !username) {
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
-    generateTokenAndSetCookie(user._id, res);
-    res.status(200).json({
-      _id: user._id,
-      fullName: user.fullName,
-      username: user.username,
-      profilePic: user.profilePic,
-    });
-  } catch (error) {
-    console.log("Error in Login Controller due to ", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-};
-const logout = (req, res) => {
-  try {
-    res.cookie("jwt", "", { maxAge: 0 });
-    res.status(200).json({ message: "Logged out successfully" });
-  } catch (error) {
-    console.log("Error in Signup Controller due to ", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-};
-const signup = async (req, res) => {
-  try {
-    const { fullName, username, password, confirmPassword, gender } = req.body;
+    let user = await User.findOne({ clerkId });
 
-    if (password !== confirmPassword) {
-      return res.status(400).json({ error: "Passwords don't match" });
+    if (!user) {
+      // Check if user exists with the same username from the old auth system
+      user = await User.findOne({ username });
+      if (user) {
+        user.clerkId = clerkId;
+        user.fullName = fullName || username;
+        user.profilePic = profilePic;
+        await user.save();
+      } else {
+        user = new User({
+          clerkId,
+          fullName: fullName || username,
+          username,
+          profilePic,
+          gender: "other", // default
+        });
+        await user.save();
+      }
+    } else {
+      user.fullName = fullName || username;
+      user.profilePic = profilePic;
+      user.username = username;
+      await user.save();
     }
-    const user = await User.findOne({ username });
 
-    if (user) {
-      return res.status(400).json({ error: "Username already exists" });
-    }
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const boyProfilePic = `https://avatar.iran.liara.run/public/boy?username=${username}`;
-    const girlProfilePic = `https://avatar.iran.liara.run/public/boy?username=${username}`;
-
-    const newUser = new User({
-      fullName,
-      username,
-      password: hashedPassword,
-      gender,
-      profilePic: gender === "male" ? boyProfilePic : girlProfilePic,
-    });
-
-    generateTokenAndSetCookie(newUser._id, res);
-    await newUser.save();
-
-    res.status(201).json({
-      _id: newUser._id,
-      fullName: newUser.fullName,
-      username: newUser.username,
-      profilePic: newUser.profilePic,
-    });
+    res.status(200).json(user);
   } catch (error) {
-    console.log("Error in Signup Controller due to ", error);
+    console.log("Error in syncUser Controller: ", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
-export { login, logout, signup };
+export { syncUser };
