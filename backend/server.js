@@ -27,10 +27,8 @@ app.use(clerkMiddleware());
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/users", userRoute);
-app.use(express.static(path.join(__dirname, "/frontend/dist")));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
+app.get("/", (req, res) => {
+  res.send("TalkFusion API is running!");
 });
 
 server.listen(port, () => {
