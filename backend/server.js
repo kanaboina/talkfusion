@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+import cors from "cors";
 import authRoutes from "./routes/auth.routes.js";
 import establishMongoConnection from "./db/establishMongoConnection.js";
 import messageRoutes from "./routes/message.routes.js";
@@ -13,6 +14,11 @@ const port = process.env.port || 5000;
 const __dirname = path.resolve();
 
 dotenv.config();
+
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "http://localhost:3000",
+  credentials: true
+}));
 
 app.use(cookieParser());
 app.use(express.json());

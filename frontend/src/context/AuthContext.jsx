@@ -17,7 +17,8 @@ export const AuthContextProvider = ({ children }) => {
       if (clerkUser) {
         try {
           const token = await getToken();
-          const res = await fetch("/api/auth/sync", {
+          const baseUrl = import.meta.env.VITE_BACKEND_URL || "";
+          const res = await fetch(`${baseUrl}/api/auth/sync`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

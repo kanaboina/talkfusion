@@ -12,7 +12,8 @@ const useGetConversations = () => {
 			setLoading(true);
 			try {
 				const token = await getToken();
-				const res = await fetch("/api/users", {
+				const baseUrl = import.meta.env.VITE_BACKEND_URL || "";
+				const res = await fetch(`${baseUrl}/api/users`, {
 					headers: { Authorization: `Bearer ${token}` }
 				});
 				const data = await res.json();

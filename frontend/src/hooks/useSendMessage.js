@@ -12,8 +12,9 @@ const useSendMessage = () => {
     setLoading(true);
     try {
       const token = await getToken();
+      const baseUrl = import.meta.env.VITE_BACKEND_URL || "";
       const res = await fetch(
-        `/api/messages/send/${selectedConversation._id}`,
+        `${baseUrl}/api/messages/send/${selectedConversation._id}`,
         {
           method: "POST",
           headers: {

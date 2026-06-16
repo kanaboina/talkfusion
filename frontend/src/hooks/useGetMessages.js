@@ -13,7 +13,8 @@ const useGetMessages = () => {
       setLoading(true);
       try {
         const token = await getToken();
-        const res = await fetch(`/api/messages/${selectedConversation._id}`, {
+        const baseUrl = import.meta.env.VITE_BACKEND_URL || "";
+        const res = await fetch(`${baseUrl}/api/messages/${selectedConversation._id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
